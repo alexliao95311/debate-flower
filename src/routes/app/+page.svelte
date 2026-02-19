@@ -20,6 +20,7 @@
 	import { loadNodes, importSettingsJson } from '$lib/models/file';
 	import Timers from '$lib/components/Timers.svelte';
 	import Help from '$lib/components/Help.svelte';
+	import Shortcuts from '$lib/components/Shortcuts.svelte';
 	import { settings } from '$lib/models/settings';
 	import SideDoc from '$lib/components/SideDoc.svelte';
 	import { history } from '$lib/models/history';
@@ -344,6 +345,11 @@
 							onclick: () => openPopup(Share, 'Share'),
 							tooltip: 'share',
 							tutorialHighlight: 4
+						},
+						{
+							icon: 'keyboard',
+							onclick: () => openPopup(Shortcuts, 'Shortcuts'),
+							tooltip: 'keyboard shortcuts'
 						}
 					]}
 				/>

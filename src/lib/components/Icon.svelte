@@ -239,6 +239,15 @@
 <line x1="55" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="10" stroke-linecap="round"/>
 <path d="M69 73L95 50L69 27" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M37.5 62C44.4036 62 50 56.4036 50 49.5C50 42.5964 44.4036 37 37.5 37C30.5964 37 25 42.5964 25 49.5C25 56.4036 30.5964 62 37.5 62Z" stroke="currentColor" stroke-width="10"/>`
+		},
+		{
+			name: 'keyboard',
+			svg: `<rect x="8" y="24" width="84" height="55" rx="8" stroke-width="10"/>
+<path d="M22 46H78" stroke-width="7" stroke-linecap="round"/>
+<path d="M34 60H66" stroke-width="7" stroke-linecap="round"/>
+<path d="M36 34L36 46" stroke-width="7" stroke-linecap="round"/>
+<path d="M54 34L54 46" stroke-width="7" stroke-linecap="round"/>
+<path d="M72 34L72 46" stroke-width="7" stroke-linecap="round"/>`
 		}
 	];
 	let displayIcon: { name: string; svg: string } | null;

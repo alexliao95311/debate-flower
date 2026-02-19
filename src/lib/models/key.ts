@@ -39,6 +39,7 @@ export const keyDict: {
 	return: '↵',
 	space: 'space',
 	delete: 'delete',
+	backspace: 'backspace',
 	tab: 'tab'
 };
 
