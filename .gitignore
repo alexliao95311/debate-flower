@@ -10,3 +10,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 build
 .vercel
+CODEBASE_INDEX.md
+SHORTCUTS_DATABASE.json
+SHORTCUTS_REFERENCE.md

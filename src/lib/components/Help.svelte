@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { openPopup } from '$lib/models/popup';
 	import { isChangelogVersionCurrent } from '$lib/models/version';
+	import Shortcuts from './Shortcuts.svelte';
 	import Button from './Button.svelte';
 	import Changelog from './Changelog.svelte';
 
@@ -35,6 +36,15 @@
 				target="_blank"
 				tooltip={$isChangelogVersionCurrent ? undefined : 'see new updates'}
 				notification={!$isChangelogVersionCurrent}
+			/>
+			<Button
+				icon = "keyboard"
+				text = "shortcuts"
+				on:click={() => {
+					closePopup();
+					openPopup(Shortcuts, 'Shortcuts');
+				}}
+				target="_blank"
 			/>
 		</ul>
 	</section>
