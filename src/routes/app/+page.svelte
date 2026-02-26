@@ -346,11 +346,6 @@
 							tooltip: 'share',
 							tutorialHighlight: 4
 						},
-						{
-							icon: 'keyboard',
-							onclick: () => openPopup(Shortcuts, 'Shortcuts'),
-							tooltip: 'keyboard shortcuts'
-						}
 					]}
 				/>
 			</div>
