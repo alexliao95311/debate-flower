@@ -23,57 +23,52 @@
 				{ keys: ['commandControl', 'shift', 'n'], description: 'Create new secondary flow' },
 				{ keys: ['commandControl', 'z'], description: 'Undo' },
 				{ keys: ['commandControl', 'shift', 'z'], description: 'Redo' },
-				{ keys: ['commandControl', 'option', 'up'], description: 'Switch to previous tab', note: 'Multiple flows open' },
-				{ keys: ['commandControl', 'option', 'down'], description: 'Switch to next tab', note: 'Multiple flows open' }
+				{ keys: ['commandControl', 'option', 'up'], description: 'Switch to previous tab', note: 'Only when multiple flows open' },
+				{ keys: ['commandControl', 'option', 'down'], description: 'Switch to next tab', note: 'Only when multiple flows open' }
 			]
 		},
 		{
 			name: 'Navigation',
-			context: 'When an argument box is focused',
+			context: 'When a cell is focused',
 			shortcuts: [
-				{ keys: ['up'], description: 'Focus argument above' },
-				{ keys: ['down'], description: 'Focus argument below' },
-				{ keys: ['left'], description: 'Move to parent argument' },
+				{ keys: ['up'], description: 'Focus cell above' },
+				{ keys: ['down'], description: 'Focus cell below' },
+				{ keys: ['left'], description: 'Move to parent cell' },
 				{ keys: ['right'], description: 'Move to first child / response' },
-				{ keys: ['tab'], description: 'Focus next sibling argument' },
-				{ keys: ['shift', 'tab'], description: 'Focus previous sibling argument' }
+				{ keys: ['tab'], description: 'Focus next sibling cell' },
+				{ keys: ['shift', 'tab'], description: 'Focus previous sibling cell' }
 			]
 		},
 		{
-			name: 'Editing',
-			context: 'When an argument box is focused',
+			name: 'Cell Creation',
+			context: 'When a cell is focused',
 			shortcuts: [
-				{ keys: ['return'], description: 'Add argument below' },
-				{ keys: ['shift', 'return'], description: 'Add response (child argument)' },
-				{ keys: ['option', 'return'], description: 'Add argument above', note: 'Not available on extensions' },
+				{ keys: ['return'], description: 'Add cell below' },
+				{ keys: ['shift', 'return'], description: 'Add response (child cell)' },
+				{ keys: ['option', 'return'], description: 'Add cell above', note: 'Not available on extension cells' },
 				{ keys: ['option', 'shift', 'return'], description: "Add at parent's next sibling" }
 			]
 		},
 		{
-			name: 'Formatting',
-			context: 'When an argument box is focused',
+			name: 'Cell Manipulation',
+			context: 'When a cell is focused',
 			shortcuts: [
-				{ keys: ['commandControl', 'b'], description: 'Toggle bold', note: 'Not available on extensions' },
-				{ keys: ['commandControl', 'shift', 'x'], description: 'Toggle crossed out', note: 'Not available on extensions' },
-				{ keys: ['control', 'l'], description: 'Fold / collapse argument', note: 'Only when box has children' }
+				{ keys: ['commandControl', 'b'], description: 'Toggle bold', note: 'Not available on extension cells' },
+				{ keys: ['commandControl', 'shift', 'x'], description: 'Toggle crossed out', note: 'Not available on extension cells' },
+				{ keys: ['control', 'l'], description: 'Fold / collapse cell', note: 'Only when cell has children' },
+				{ keys: ['commandControl', 'e'], description: 'Extend cell', note: 'Not available on extension cells' },
+				{ keys: ['backspace'], description: 'Delete cell', note: 'Only when empty and has no children' },
+				{ keys: ['commandControl', 'backspace'], description: 'Force delete cell', note: 'Only when cell has no children' }
 			]
 		},
-		{
-			name: 'Manipulation',
-			context: 'When an argument box is focused',
-			shortcuts: [
-				{ keys: ['commandControl', 'e'], description: 'Extend argument', note: 'Not available on extensions' },
-				{ keys: ['backspace'], description: 'Delete box', note: 'Only when empty and has no children' },
-				{ keys: ['commandControl', 'backspace'], description: 'Force delete box', note: 'Only when box has no children' }
-			]
-		},
+
 		{
 			name: 'Title',
 			context: 'When editing the flow title',
 			shortcuts: [
-				{ keys: ['return'], description: 'Move focus to first argument' },
-				{ keys: ['down'], description: 'Move focus to first argument' },
-				{ keys: ['right'], description: 'Move focus to first argument' }
+				{ keys: ['return'], description: 'Move focus to first cell' },
+				{ keys: ['down'], description: 'Move focus to first cell' },
+				{ keys: ['right'], description: 'Move focus to first cell' }
 			]
 		}
 	];
@@ -131,7 +126,7 @@
 		display: grid;
 		grid-template-columns: calc(max(130px, 20%) + var(--padding-big)) 1fr;
 	}
-
+	
 	.outline {
 		width: 100%;
 		padding-top: calc(var(--button-size) + var(--padding) * 2);
@@ -227,7 +222,6 @@
 		align-items: center;
 		gap: var(--padding-big);
 		padding: var(--padding) 0;
-		border-top: 1px solid var(--background-indent);
 	}
 
 	.keys {
