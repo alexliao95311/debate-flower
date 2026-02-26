@@ -245,9 +245,9 @@
 			svg: `<rect x="8" y="24" width="84" height="55" rx="8" stroke-width="10"/>
 <path d="M22 46H78" stroke-width="7" stroke-linecap="round"/>
 <path d="M34 60H66" stroke-width="7" stroke-linecap="round"/>
-<path d="M36 34L36 46" stroke-width="7" stroke-linecap="round"/>
-<path d="M54 34L54 46" stroke-width="7" stroke-linecap="round"/>
-<path d="M72 34L72 46" stroke-width="7" stroke-linecap="round"/>`
+<path d="M30 34L30 46" stroke-width="7" stroke-linecap="round"/>
+<path d="M50 34L50 46" stroke-width="7" stroke-linecap="round"/>
+<path d="M70 34L70 46" stroke-width="7" stroke-linecap="round"/>`
 		}
 	];
 	let displayIcon: { name: string; svg: string } | null;
