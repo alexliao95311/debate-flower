@@ -7,6 +7,8 @@
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
 	import { onDestroy, onMount } from 'svelte';
+	import { initFirebaseAuth } from '$lib/models/firebaseAuth';
+	import { applyCloudLibraryOnSignIn } from '$lib/models/autoSave';
 	import {
 		giveGuestHostKey,
 		initGuestConnection,
@@ -269,6 +271,11 @@
 	);
 
 	let closeWindow = false;
+	onMount(function () {
+		void initFirebaseAuth(function (uid: string) {
+			return applyCloudLibraryOnSignIn(uid);
+		});
+	});
 	onMount(function () {
 		const hostKey = parseJoinLink();
 		const guestKey = parseConfirmLink();

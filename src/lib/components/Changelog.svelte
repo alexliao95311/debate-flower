@@ -135,7 +135,6 @@
 
 <style>
 	.top {
-		padding-top: calc(var(--button-size) + var(--padding) * 2);
 		width: min(calc(100vw - var(--padding) * 2), 500px);
 		height: min(calc(100vh - var(--padding) * 2), min-content);
 		box-sizing: border-box;

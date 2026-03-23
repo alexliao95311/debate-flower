@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { MAX_SAVED_FLOWS, type SavedNodesDatas } from '$lib/models/autoSave';
+	import { firebaseUser } from '$lib/models/firebaseAuth';
 	import { settings } from '$lib/models/settings';
 	import Button from './Button.svelte';
 	import SavedFlow from './SavedFlow.svelte';
@@ -24,7 +25,11 @@
 			/>
 		</div>
 		<p>
-			up to {MAX_SAVED_FLOWS} flows saved in your browser but lost when you clear cookies
+			{#if $firebaseUser}
+				up to {MAX_SAVED_FLOWS} flows; signed in — copies also sync to your account
+			{:else}
+				up to {MAX_SAVED_FLOWS} flows saved in your browser but lost when you clear cookies
+			{/if}
 		</p>
 	</div>
 	<div class="view" class:customScrollbar={settings.data.customScrollbar.value}>

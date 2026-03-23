@@ -147,7 +147,7 @@
 	}
 	.outline {
 		width: 100%;
-		padding-top: calc(var(--button-size) + var(--padding) * 2);
+		padding-top: 0;
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
@@ -207,7 +207,7 @@
 	.content {
 		box-sizing: border-box;
 		width: 100%;
-		padding-top: calc(var(--button-size) + var(--padding));
+		padding-top: var(--padding);
 		overflow: auto;
 		scroll-behavior: smooth;
 		display: flex;

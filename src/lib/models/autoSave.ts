@@ -1,9 +1,16 @@
 import { nodes, subscribeFlowsChange } from '$lib/models/store';
 import type { Writable } from 'svelte/store';
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import { getJson, loadNodes, downloadString } from './file';
 import { getNode, isNodesWorthSaving, type Nodes } from './node';
 import { replaceNodes } from './nodeDecorateAction';
+import { firebaseUser } from './firebaseAuth';
+import {
+	deleteFlowRemote,
+	loadCloudLibrary,
+	writeFlowJson,
+	writeLibraryIndexJson
+} from './firebaseFirestore';
 
 let flowKey: NodeKey | null = null;
 const savedNodesDatasMut: Writable<SavedNodesDatas> = writable(getSavedNodesDatas());
@@ -35,9 +42,84 @@ nodes.subscribe((nodes) => {
 });
 
 let $savedNodesDatasMut: SavedNodesDatas;
+
+let cloudHydrating = false;
+let cloudIndexTimer: ReturnType<typeof setTimeout> | null = null;
+const cloudFlowTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+function scheduleCloudIndexSync(index: SavedNodesDatas) {
+	const uid = get(firebaseUser)?.uid;
+	if (!uid || cloudHydrating) return;
+	if (cloudIndexTimer != null) {
+		clearTimeout(cloudIndexTimer);
+	}
+	cloudIndexTimer = setTimeout(() => {
+		cloudIndexTimer = null;
+		void writeLibraryIndexJson(uid, JSON.stringify(index)).catch((err) =>
+			console.error('Firebase index sync failed', err)
+		);
+	}, 1500);
+}
+
+function scheduleCloudFlowSync(flowKey: NodeKey, json: string) {
+	const uid = get(firebaseUser)?.uid;
+	if (!uid || cloudHydrating) return;
+	const prev = cloudFlowTimers.get(flowKey);
+	if (prev != null) {
+		clearTimeout(prev);
+	}
+	cloudFlowTimers.set(
+		flowKey,
+		setTimeout(() => {
+			cloudFlowTimers.delete(flowKey);
+			void writeFlowJson(uid, flowKey, json).catch((err) =>
+				console.error('Firebase flow sync failed', err)
+			);
+		}, 2000)
+	);
+}
+
+async function uploadLocalLibraryToCloud(uid: string) {
+	const datas = getSavedNodesDatas();
+	for (const key of Object.keys(datas)) {
+		const raw = localStorage.getItem(key);
+		if (raw != null) {
+			await writeFlowJson(uid, key, raw);
+		}
+	}
+	await writeLibraryIndexJson(uid, JSON.stringify(datas));
+}
+
+/** Call after Firebase sign-in: merge cloud into local, or push local to empty cloud. */
+export async function applyCloudLibraryOnSignIn(uid: string): Promise<void> {
+	const { index, bodies } = await loadCloudLibrary(uid);
+	cloudHydrating = true;
+	try {
+		if (Object.keys(index).length === 0) {
+			await uploadLocalLibraryToCloud(uid);
+		} else {
+			for (let i = localStorage.length - 1; i >= 0; i--) {
+				const k = localStorage.key(i);
+				if (k != null && k.startsWith('flow:')) {
+					localStorage.removeItem(k);
+				}
+			}
+			for (const [key, body] of Object.entries(bodies)) {
+				localStorage.setItem(key, body);
+			}
+			localStorage.setItem('savedFlows', JSON.stringify(index));
+			savedNodesDatasMut.set(index);
+		}
+	} finally {
+		cloudHydrating = false;
+	}
+	unsetFlowKey();
+}
+
 savedNodesDatasMut.subscribe((value) => {
 	$savedNodesDatasMut = value;
 	localStorage.setItem('savedFlows', JSON.stringify(value));
+	scheduleCloudIndexSync(value);
 });
 
 let lastSaveTime: number = Date.now();
@@ -81,6 +163,11 @@ export function deleteNodes(key: NodeKey) {
 	// update in case different tab
 	savedNodesDatasMut.set(getSavedNodesDatas());
 
+	const uid = get(firebaseUser)?.uid;
+	if (uid != null && !cloudHydrating) {
+		void deleteFlowRemote(uid, key).catch((err) => console.error('Firebase delete flow failed', err));
+	}
+
 	localStorage.removeItem(key);
 	if (Object.hasOwn($savedNodesDatasMut, key)) {
 		delete $savedNodesDatasMut[key];
@@ -117,10 +204,17 @@ export function saveNodes(nodes: Nodes) {
 				return b;
 			}
 		});
+		const uidDrop = get(firebaseUser)?.uid;
+		if (uidDrop != null && !cloudHydrating) {
+			void deleteFlowRemote(uidDrop, oldestKey).catch((err) =>
+				console.error('Firebase delete oldest flow failed', err)
+			);
+		}
 		delete $savedNodesDatasMut[oldestKey];
 		localStorage.removeItem(oldestKey);
 	}
 	savedNodesDatasMut.set($savedNodesDatasMut);
+	scheduleCloudFlowSync(flowKey, data);
 }
 
 export function downloadSavedNodes(key: NodeKey) {

@@ -234,18 +234,9 @@
 		none: {
 			Enter: {
 				handle: () => {
-					if (consistentEnterBehaviour) {
-						if (addSibling(index(), 1)) {
-							focusSibling(index(), 1);
-							history.setPrevAfterFocus($focusId);
-						}
-					} else {
-						blurSelf();
-						if (focusSiblingStrict(index(), 1)) return;
-						if (addSibling(index(), 1)) {
-							focusSibling(index(), 1);
-							history.setPrevAfterFocus($focusId);
-						}
+					if (addSibling(index(), 1)) {
+						focusSibling(index(), 1);
+						history.setPrevAfterFocus($focusId);
 					}
 				}
 			},

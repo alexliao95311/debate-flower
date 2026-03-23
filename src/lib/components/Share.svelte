@@ -209,7 +209,7 @@
 	.top {
 		width: min(calc(100vw - var(--padding) * 2), 600px);
 		height: min(calc(100vh - var(--padding) * 2), min-content);
-		padding: calc(var(--button-size) + var(--padding) * 2) 0 0 0;
+		padding: var(--padding) 0 0;
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;

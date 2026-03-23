@@ -129,7 +129,7 @@
 	
 	.outline {
 		width: 100%;
-		padding-top: calc(var(--button-size) + var(--padding) * 2);
+		padding-top: 0;
 		box-sizing: border-box;
 		background-color: var(--background-secondary);
 		overflow: hidden;
@@ -178,7 +178,7 @@
 	.content {
 		box-sizing: border-box;
 		width: 100%;
-		padding-top: calc(var(--button-size) + var(--padding));
+		padding-top: var(--padding);
 		overflow: auto;
 		scroll-behavior: smooth;
 		height: inherit;
@@ -251,7 +251,7 @@
 		}
 
 		.outline {
-			padding-top: calc(var(--button-size) + var(--padding) * 2);
+			padding-top: 0;
 			height: auto;
 		}
 

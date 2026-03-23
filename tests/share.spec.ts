@@ -14,7 +14,7 @@ test('share', async ({ context }) => {
 	await hostPage.getByPlaceholder('type here').press('Shift+Enter');
 	await hostPage.getByRole('textbox').nth(2).fill('test 3');
 	await hostPage.getByRole('textbox').nth(2).press('ArrowLeft');
-	await hostPage.locator('.sidebar .header .buttons div:nth-child(4) > .top').first().click();
+	await hostPage.locator('.sidebar .header .buttons .showButtons').locator('> *').nth(4).click();
 	await hostPage.getByRole('button', { name: 'host new room' }).click();
 	await hostPage.getByRole('button', { name: 'add guest' }).click();
 	const joinLink = await hostPage.locator('.copyBox > .text').first().textContent();

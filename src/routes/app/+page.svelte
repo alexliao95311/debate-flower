@@ -9,6 +9,7 @@
 	import SortableList from '$lib/components/SortableList.svelte';
 	import AddTab from '$lib/components/AddTab.svelte';
 	import Share from '$lib/components/Share.svelte';
+	import FirebaseAccount from '$lib/components/FirebaseAccount.svelte';
 	import Tab from '$lib/components/Tab.svelte';
 	import { dev } from '$app/environment';
 	import { openPopup } from '$lib/models/popup';
@@ -321,6 +322,11 @@
 				<ButtonBar
 					resize
 					buttons={[
+						{
+							icon: 'addPerson',
+							onclick: () => openPopup(FirebaseAccount, 'Account'),
+							tooltip: 'account & cloud sync'
+						},
 						{
 							icon: 'link',
 							onclick: () => openPopup(Help, 'Help'),

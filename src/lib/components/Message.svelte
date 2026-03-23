@@ -17,7 +17,6 @@
 <style>
 	.top {
 		padding: var(--padding-big);
-		padding-top: calc(var(--button-size) + var(--padding-big) + var(--padding));
 		width: min(calc(100vw - var(--padding) * 2), 400px);
 		height: min(calc(100vh - var(--padding) * 2), min-content);
 		box-sizing: border-box;
