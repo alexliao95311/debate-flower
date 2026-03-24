@@ -9,16 +9,8 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { initFirebaseAuth } from '$lib/models/firebaseAuth';
 	import { applyCloudLibraryOnSignIn } from '$lib/models/autoSave';
-	import {
-		giveGuestHostKey,
-		initGuestConnection,
-		parseConfirmLink,
-		parseJoinLink,
-		type Broadcast
-	} from '$lib/models/sharingConnection';
+	import { joinRoom, parseRoomParam } from '$lib/models/wsRoom';
 	import Share from '$lib/components/Share.svelte';
-	import CloseWindow from '$lib/components/CloseWindow.svelte';
-	import Message from '$lib/components/Message.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	inject({ mode: dev ? 'development' : 'production' });
@@ -270,55 +262,16 @@
 		})
 	);
 
-	let closeWindow = false;
 	onMount(function () {
 		void initFirebaseAuth(function (uid: string) {
 			return applyCloudLibraryOnSignIn(uid);
 		});
 	});
 	onMount(function () {
-		const hostKey = parseJoinLink();
-		const guestKey = parseConfirmLink();
-
-		if (hostKey != null) {
-			initGuestConnection();
-			giveGuestHostKey(hostKey);
+		const roomId = parseRoomParam();
+		if (roomId != null) {
+			joinRoom(roomId);
 			openPopup(Share, 'Share');
-		} else if (guestKey != null) {
-			const channel = new BroadcastChannel('guestKeySend');
-			const message: Broadcast = {
-				tag: 'guestKey',
-				key: guestKey
-			};
-			channel.postMessage(message);
-			let mismatch = false;
-			channel.addEventListener('message', function (event) {
-				const response: Broadcast = event.data;
-				// close this tab, because the host has already connected
-				if (response.tag == 'guestKeyRecieved') {
-					if (response.broadcastId != guestKey.broadcastId) return;
-					closeWindow = true;
-					window.close();
-				} else if (response.tag == 'guestKeyMismatch') {
-					if (response.broadcastId != guestKey.broadcastId) return;
-					mismatch = true;
-				}
-			});
-			setTimeout(function () {
-				if (!closeWindow) {
-					if (mismatch) {
-						openPopup(Message, 'Connection Message', {
-							message: 'Connection id mismatch',
-							error: true
-						});
-					} else {
-						openPopup(Message, 'Connection Message', {
-							message: 'No host awaiting guests',
-							error: true
-						});
-					}
-				}
-			}, 1000);
 		}
 	});
 
@@ -343,11 +296,7 @@
 	/>
 	<link rel="canonical" href="https://debate-flow.vercel.app/" />
 </svelte:head>
-{#if closeWindow}
-	<CloseWindow reason="confirm link information has been sent to host tab" />
-{:else}
-	<slot />
-{/if}
+<slot />
 {#if $popups.length > 0}
 	<!-- we can ignore because pressing escape on window already has same functionality -->
 	<!-- svelte-ignore a11y-click-events-have-key-events -->

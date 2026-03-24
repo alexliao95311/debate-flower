@@ -11,7 +11,8 @@ import {
 	type SelfIdFor
 } from './node';
 import { sendActionBundle } from './sharingChannel';
-import { flowsChange, frozen, nodes } from './store';
+import { flowsChange, nodes } from './store';
+import { frozen } from './wsRoom';
 import { history } from './history';
 import { syncUi } from './nodeSyncUi';
 
