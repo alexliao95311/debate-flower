@@ -6,10 +6,25 @@
 
 	let copied = false;
 
+	function copyText(text: string) {
+		if (navigator.clipboard?.writeText) {
+			navigator.clipboard.writeText(text);
+		} else {
+			const el = document.createElement('textarea');
+			el.value = text;
+			el.style.position = 'fixed';
+			el.style.opacity = '0';
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+		}
+	}
+
 	function copyLink() {
 		const state = $wsRoom;
 		if (state.tag !== 'connected') return;
-		navigator.clipboard.writeText(getRoomLink(state.roomId));
+		copyText(getRoomLink(state.roomId));
 		copied = true;
 		setTimeout(() => (copied = false), 2000);
 	}

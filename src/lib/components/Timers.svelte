@@ -88,6 +88,7 @@
 	{/key}
 	<div class="buttons">
 		<Button icon={showTimers ? 'delete' : 'clock'} on:click={() => (showTimers = !showTimers)} />
+		<slot />
 	</div>
 </div>
 

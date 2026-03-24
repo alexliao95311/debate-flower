@@ -4,8 +4,6 @@
 	import { popups, closePopup, openPopup, type Popup as PopupType } from '$lib/models/popup';
 	import { screenTransition } from '$lib/models/transition';
 
-	import { dev } from '$app/environment';
-	import { inject } from '@vercel/analytics';
 	import { onDestroy, onMount } from 'svelte';
 	import { initFirebaseAuth } from '$lib/models/firebaseAuth';
 	import { applyCloudLibraryOnSignIn } from '$lib/models/autoSave';
@@ -13,9 +11,7 @@
 	import Share from '$lib/components/Share.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
-	inject({ mode: dev ? 'development' : 'production' });
-
-	const colorThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const colorThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 	if (colorThemeMediaQuery.matches) {
 		document.body.classList.add('dark');
 	}

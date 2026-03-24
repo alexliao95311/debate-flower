@@ -625,8 +625,8 @@ export const settings: Settings = new Settings({
 	},
 	sidebarWidth: {
 		name: 'Sidebar width',
-		value: 184,
-		auto: 184,
+		value: 140,
+		auto: 140,
 		type: 'slider',
 		detail: {
 			min: 50,

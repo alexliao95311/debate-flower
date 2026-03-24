@@ -3,6 +3,7 @@ import { _nodesMut, flowsChange, nodes } from './store';
 import { applyActionBundleAndSyncUi } from './nodeAction';
 import { resolvePendingAction } from './nodePendingAction';
 import type { ActionBundle } from './nodeAction';
+import { newNodeId } from './node';
 import { isNodesWorthSaving, type Nodes } from './node';
 
 export type WsRoomState =
@@ -128,7 +129,7 @@ export function sendWsAction(actionBundle: ActionBundle): void {
 	socket.send(
 		JSON.stringify({
 			tag: 'action',
-			actionId: crypto.randomUUID(),
+			actionId: newNodeId(),
 			actionBundle,
 			nodes: $nodes
 		})

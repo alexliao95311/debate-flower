@@ -2,7 +2,7 @@ import { nodes, subscribeFlowsChange } from '$lib/models/store';
 import type { Writable } from 'svelte/store';
 import { writable, derived, get } from 'svelte/store';
 import { getJson, loadNodes, downloadString } from './file';
-import { getNode, isNodesWorthSaving, type Nodes } from './node';
+import { getNode, isNodesWorthSaving, newNodeId, type Nodes } from './node';
 import { replaceNodes } from './nodeDecorateAction';
 import { firebaseUser } from './firebaseAuth';
 import {
@@ -32,8 +32,7 @@ export type SavedNodesDatas = {
 };
 
 function newNodeKey(): NodeKey {
-	const uuid = crypto.randomUUID();
-	return `flow:${uuid}`;
+	return `flow:${newNodeId()}`;
 }
 
 let $nodes: Nodes;

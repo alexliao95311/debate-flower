@@ -3,6 +3,7 @@
 	import Title from '$lib/components/Title.svelte';
 	import BoxControl from '$lib/components/BoxControl.svelte';
 	import ButtonBar from '$lib/components/ButtonBar.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import DownloadUpload from '$lib/components/DownloadUpload.svelte';
 	import Message from '$lib/components/Message.svelte';
 	import Settings from '$lib/components/Settings.svelte';
@@ -328,19 +329,6 @@
 							tooltip: 'account & cloud sync'
 						},
 						{
-							icon: 'link',
-							onclick: () => openPopup(Help, 'Help'),
-							tooltip: $isChangelogVersionCurrent ? 'help' : 'new updates',
-							tutorialHighlight: 1,
-							notification: !$isChangelogVersionCurrent
-						},
-						{
-							icon: 'gear',
-							onclick: () => openPopup(Settings, 'Settings'),
-							tooltip: 'settings',
-							tutorialHighlight: 2
-						},
-						{
 							icon: 'file',
 							onclick: () => openPopup(DownloadUpload, 'File'),
 							tooltip: 'file',
@@ -368,7 +356,19 @@
 				</div>
 			</div>
 			<div class="timer">
-				<Timers />
+				<Timers>
+					<Button
+						icon="link"
+						on:click={() => openPopup(Help, 'Help')}
+						tooltip={$isChangelogVersionCurrent ? 'help' : 'new updates'}
+						notification={!$isChangelogVersionCurrent}
+					/>
+					<Button
+						icon="gear"
+						on:click={() => openPopup(Settings, 'Settings')}
+						tooltip="settings"
+					/>
+				</Timers>
 			</div>
 		</div>
 		{#if $nodes.root.children.length > 0}

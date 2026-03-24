@@ -35,8 +35,18 @@ focusId.subscribe((newFocusId) => {
 	}
 });
 
+function randomUUID(): string {
+	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+		return crypto.randomUUID();
+	}
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+		const r = (Math.random() * 16) | 0;
+		return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+	});
+}
+
 export function newNodeId(): NodeId {
-	return crypto.randomUUID() as NodeId;
+	return randomUUID() as NodeId;
 }
 
 export function newBoxId(): BoxId {
