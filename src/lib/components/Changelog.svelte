@@ -14,6 +14,13 @@
 
 <div class="top palette-plain">
 	<div class="scroll">
+		<section class="fork-notice">
+			<p>
+				A fork of <a href="https://debate-flow.vercel.app" target="_blank">Ashwagandhae's Debate Flower</a>
+				— added account sign-in and fixed share features.
+			</p>
+			<p class="created-by">Created by Alex Liao</p>
+		</section>
 		<section>
 			<div class="above">
 				<h2>v1.1.7</h2>
@@ -160,6 +167,27 @@
 		background: var(--background);
 	}
 
+	section.fork-notice {
+		background: var(--background-accent);
+		border-left: 3px solid var(--color-accent);
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	section.fork-notice p {
+		margin: 0;
+		color: var(--color-subtle);
+		font-size: 0.9rem;
+		line-height: 1.5em;
+	}
+	section.fork-notice .created-by {
+		font-weight: var(--font-weight-bold);
+		color: var(--text);
+	}
+	section.fork-notice a {
+		color: inherit;
+		text-decoration: underline;
+	}
 	ul {
 		line-height: 1.6em;
 		margin: 0;

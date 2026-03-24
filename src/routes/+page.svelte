@@ -77,8 +77,14 @@
 			</section>
 		</a>
 		<section class="footer">
-			<a href="https://github.com/Ashwagandhae/debate-flow" target="_blank">Source Code on Github</a
-			>
+			<div class="footer-inner">
+				<p class="attribution">
+					A fork of <a href="https://debate-flow.vercel.app" target="_blank">Ashwagandhae's Debate Flower</a>
+					— added account sign-in and fixed share features.
+				</p>
+				<p class="created-by">Created by Alex Liao</p>
+				<a href="https://github.com/alexliao95311/debate-flower" target="_blank">Source Code on Github</a>
+			</div>
 		</section>
 	</article>
 </main>
@@ -217,11 +223,32 @@
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
-		padding: 20rem 1rem 1rem 1rem;
+		padding: 6rem 1rem 3rem 1rem;
 		width: 100%;
 		height: auto;
 		border-radius: var(--border-radius);
 		box-sizing: border-box;
+	}
+	.footer-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.9rem;
+		text-align: center;
+	}
+	.footer-inner p {
+		margin: 0;
+		color: var(--text);
+	}
+	.footer-inner .created-by {
+		font-weight: var(--font-weight-bold);
+	}
+	:global(.footer-inner a) {
+		display: inline !important;
+		color: var(--text) !important;
+		text-decoration: underline !important;
+		opacity: 0.8;
 	}
 	@media (max-width: 700px) {
 		h1 {

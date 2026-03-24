@@ -1,5 +1,7 @@
 # Changes
 
+> **Fork of [Ashwagandhae's Debate Flower](https://debate-flow.vercel.app)** — added account sign-in and fixed share features. Created by Alex Liao.
+
 - Made keybinds more intuitive
 - Added shortcut for delete
 - Added congress support (u/Prestigious_Hold6064)
