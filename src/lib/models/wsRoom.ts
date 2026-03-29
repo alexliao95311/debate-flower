@@ -104,17 +104,20 @@ function connect(roomId: string): void {
 	};
 
 	ws.onclose = () => {
+		resolvePendingAction($nodes);
 		wsRoom.set({ tag: 'disconnected' });
 		socket = null;
 	};
 
 	ws.onerror = () => {
+		resolvePendingAction($nodes);
 		wsRoom.set({ tag: 'disconnected' });
 		socket = null;
 	};
 }
 
 export function disconnect(): void {
+	resolvePendingAction($nodes);
 	if (socket) {
 		socket.close();
 		socket = null;

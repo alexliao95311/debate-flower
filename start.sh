@@ -1,6 +1,5 @@
 #!/bin/bash
 set -a
-source "$(dirname "$0")/.env"
+source /home/azureuser/debate-flower/.env
 set +a
-
-HOST=0.0.0.0 PORT=3000 node build/index.js
+exec node /home/azureuser/debate-flower/build/index.js

@@ -28,6 +28,8 @@ wss.on('connection', (ws) => {
 				const isFirst = room.clients.size === 0;
 				room.clients.add(ws);
 
+				console.log(`[${new Date().toISOString()}] JOIN room=${roomId} peers=${room.clients.size} isFirst=${isFirst}`);
+
 				ws.send(JSON.stringify({ tag: 'joined', isFirst }));
 
 				if (!isFirst && room.nodes !== null) {
@@ -78,8 +80,10 @@ wss.on('connection', (ws) => {
 		if (!room) return;
 		room.clients.delete(ws);
 		if (room.clients.size === 0) {
+			console.log(`[${new Date().toISOString()}] LEAVE room=${roomId} peers=0 (room deleted)`);
 			rooms.delete(roomId);
 		} else {
+			console.log(`[${new Date().toISOString()}] LEAVE room=${roomId} peers=${room.clients.size}`);
 			broadcastToRoom(room, { tag: 'peer_count', count: room.clients.size });
 		}
 	});
