@@ -2,7 +2,6 @@
 	import Flow from '$lib/components/Flow.svelte';
 	import Title from '$lib/components/Title.svelte';
 	import BoxControl from '$lib/components/BoxControl.svelte';
-	import ButtonBar from '$lib/components/ButtonBar.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import DownloadUpload from '$lib/components/DownloadUpload.svelte';
 	import Message from '$lib/components/Message.svelte';
@@ -18,11 +17,8 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { activeMouse, flowsChange, nodes, pendingAction } from '$lib/models/store';
 	import { createKeyDownHandler } from '$lib/models/key';
-	import Prelude from '$lib/components/Prelude.svelte';
 	import { loadNodes, importSettingsJson } from '$lib/models/file';
-	import Timers from '$lib/components/Timers.svelte';
 	import Help from '$lib/components/Help.svelte';
-	import Shortcuts from '$lib/components/Shortcuts.svelte';
 	import { settings } from '$lib/models/settings';
 	import SideDoc from '$lib/components/SideDoc.svelte';
 	import { history } from '$lib/models/history';
@@ -30,25 +26,24 @@
 	import { isChangelogVersionCurrent } from '$lib/models/version';
 	import { addNewFlow, deleteFlow, moveFlow, replaceNodes } from '$lib/models/nodeDecorateAction';
 	import { getDebateStyleFlow, type DebateStyleFlow } from '$lib/models/debateStyle';
+	import { wsRoom, parseRoomParam, sendRoundName, onRoundNameFromPeer, setLocalRoundName } from '$lib/models/wsRoom';
+	import { currentRoundName } from '$lib/models/autoSave';
+	import { goto } from '$app/navigation';
 
 	$: unsavedChanges = $nodes.root.children.length > 0;
 
+	// If no round is active and no room link, send user to /home
+	let redirecting = false;
 	onMount(() => {
-		window.addEventListener(
-			'dragover',
-			function (e) {
-				e.preventDefault();
-			},
-			false
-		);
-		window.addEventListener(
-			'drop',
-			function (e) {
-				e.preventDefault();
-			},
-			false
-		);
-		// changes you made may not be saved
+		const hasRoomParam = parseRoomParam() != null;
+		if (!hasRoomParam && $currentRoundName === '' && $nodes.root.children.length === 0) {
+			redirecting = true;
+			goto('/home');
+			return;
+		}
+
+		window.addEventListener('dragover', (e) => e.preventDefault(), false);
+		window.addEventListener('drop', (e) => e.preventDefault(), false);
 		window.addEventListener('beforeunload', function (e) {
 			if (unsavedChanges && !dev) {
 				let confirmationMessage = 'Are you sure you want to leave?';
@@ -133,7 +128,7 @@
 					if (style == null) return;
 					addFlow(style);
 				},
-				require: () => getDebateStyleFlow("primary") != null
+				require: () => getDebateStyleFlow("primary") != null && hasRound
 			}
 		},
 		'control shift': {
@@ -143,7 +138,7 @@
 					if (style == null) return;
 					addFlow(style);
 				},
-				require: () => getDebateStyleFlow("secondary") != null
+				require: () => getDebateStyleFlow("secondary") != null && hasRound
 			}
 		},
 		'commandControl shift': {
@@ -277,8 +272,30 @@
 
 	let switchSpeakers = false;
 
+	// Keep wsRoom's internal round name in sync with the store (without circular imports)
+	onMount(() => {
+		// Push current value immediately
+		setLocalRoundName($currentRoundName);
+		// Register callback so incoming peer round_name updates the store
+		onRoundNameFromPeer((name) => {
+			currentRoundName.set(name);
+		});
+	});
+
+	onDestroy(() => {
+		onRoundNameFromPeer(null as any);
+	});
+
+	// Reactively broadcast outgoing round name changes to peers
+	let prevRoundName = '';
+	$: if ($currentRoundName !== prevRoundName) {
+		prevRoundName = $currentRoundName;
+		setLocalRoundName($currentRoundName);
+		sendRoundName($currentRoundName);
+	}
+
 	// Custom scrollbar/overflow logic
-	onMount(() => { 
+	onMount(() => {
 		document.body.classList.add("app");
 	});
 
@@ -302,11 +319,31 @@
 		}
 	}
 
-	// TODO:
-	// add custom background color
-	// add command K
-	// add command f
-	// add capitalization
+	$: hasRound = $currentRoundName !== '' || $nodes.root.children.length > 0;
+
+	// Inline round name editing
+	let editingRoundName = false;
+	let roundNameEditValue = '';
+
+	function startEditRoundName() {
+		roundNameEditValue = $currentRoundName;
+		editingRoundName = true;
+	}
+
+	function commitRoundName() {
+		const name = roundNameEditValue.trim();
+		if (name) $currentRoundName = name;
+		editingRoundName = false;
+	}
+
+	function handleRoundNameEditKey(e: KeyboardEvent) {
+		if (e.key === 'Enter') commitRoundName();
+		if (e.key === 'Escape') editingRoundName = false;
+	}
+
+	// Connection indicator state
+	$: wsConnected = $wsRoom.tag === 'connected';
+	$: wsConnecting = $wsRoom.tag === 'connecting';
 </script>
 
 <svelte:body
@@ -317,82 +354,122 @@
 />
 <main class:activeMouse class="palette-plain">
 	<input id="uploadId" type="file" hidden on:change={readUpload} />
-	<div class="grid" class:showPrelude={!($nodes.root.children.length > 0)}>
+	<div class="grid">
 		<div class="sidebar">
+			<!-- Top header: home, account, share -->
 			<div class="header">
-				<ButtonBar
-					resize
-					buttons={[
-						{
-							icon: 'addPerson',
-							onclick: () => openPopup(FirebaseAccount, 'Account'),
-							tooltip: 'account & cloud sync'
-						},
-						{
-							icon: 'file',
-							onclick: () => openPopup(DownloadUpload, 'File'),
-							tooltip: 'file',
-							tutorialHighlight: 3
-						},
-						{
-							icon: 'people',
-							onclick: () => openPopup(Share, 'Share'),
-							tooltip: 'share',
-							tutorialHighlight: 4
-						},
-					]}
-				/>
-			</div>
-			<div class="tabs" class:customScrollbar={settings.data.customScrollbar.value}>
-				<div class="tabScroll">
-					<SortableList list={$nodes.root.children} on:sort={handleSort} let:index>
-						<Tab
-							on:click={() => clickTab($nodes.root.children[index])}
-							flowId={$nodes.root.children[index]}
-							selected={$selectedFlowId == $nodes.root.children[index]}
+				<div class="top-buttons">
+					<Button
+						icon="home"
+						link="/home"
+						tooltip="home"
+					/>
+					<Button
+						icon="addPerson"
+						onclick={() => openPopup(FirebaseAccount, 'Account')}
+						tooltip="account & cloud sync"
+					/>
+					<div class="share-btn-wrapper">
+						<Button
+							icon="people"
+							onclick={() => openPopup(Share, 'Share')}
+							tooltip="share"
 						/>
-					</SortableList>
-					<AddTab {addFlow} bind:switchSpeakers />
+						<span
+							class="share-indicator"
+							class:connected={wsConnected}
+							class:connecting={wsConnecting}
+							class:disconnected={!wsConnected && !wsConnecting}
+						>
+							{#if wsConnected}
+								<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" width="8" height="8"><path d="M88.7817 29.2843L39.2842 78.7817L11 50.4975" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							{:else}
+								<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" width="8" height="8"><path d="M78.5685 22L22 78.5685" stroke-width="15" stroke-linecap="round"/><path d="M22 22L78.5685 78.5685" stroke-width="15" stroke-linecap="round"/></svg>
+							{/if}
+						</span>
+					</div>
 				</div>
 			</div>
-			<div class="timer">
-				<Timers>
-					<Button
-						icon="link"
-						on:click={() => openPopup(Help, 'Help')}
-						tooltip={$isChangelogVersionCurrent ? 'help' : 'new updates'}
-						notification={!$isChangelogVersionCurrent}
-					/>
-					<Button
-						icon="gear"
-						on:click={() => openPopup(Settings, 'Settings')}
-						tooltip="settings"
-					/>
-				</Timers>
+
+			<!-- Round name display / edit -->
+			{#if hasRound}
+				<div class="round-name-bar">
+					{#if editingRoundName}
+						<!-- svelte-ignore a11y-autofocus -->
+						<input
+							class="round-name-edit"
+							type="text"
+							bind:value={roundNameEditValue}
+							on:keydown={handleRoundNameEditKey}
+							on:blur={commitRoundName}
+							autofocus
+						/>
+					{:else}
+						<button class="round-name-label" on:click={startEditRoundName} title="click to rename">
+							{$currentRoundName || 'Round'}
+						</button>
+					{/if}
+				</div>
+			{/if}
+
+			<!-- Tabs area -->
+			<div class="tabs" class:customScrollbar={settings.data.customScrollbar.value}>
+				{#if hasRound}
+					<div class="tabScroll">
+						<SortableList list={$nodes.root.children} on:sort={handleSort} let:index>
+							<Tab
+								on:click={() => clickTab($nodes.root.children[index])}
+								flowId={$nodes.root.children[index]}
+								selected={$selectedFlowId == $nodes.root.children[index]}
+							/>
+						</SortableList>
+						<AddTab {addFlow} bind:switchSpeakers />
+					</div>
+				{/if}
+			</div>
+
+			<!-- Bottom: file, help, gear -->
+			<div class="footer">
+				<Button
+					icon="file"
+					onclick={() => openPopup(DownloadUpload, 'File')}
+					tooltip="file"
+				/>
+				<Button
+					icon="link"
+					onclick={() => openPopup(Help, 'Help')}
+					tooltip={$isChangelogVersionCurrent ? 'help' : 'new updates'}
+					notification={!$isChangelogVersionCurrent}
+				/>
+				<Button
+					icon="gear"
+					onclick={() => openPopup(Settings, 'Settings')}
+					tooltip="settings"
+				/>
 			</div>
 		</div>
-		{#if $nodes.root.children.length > 0}
-			{#if $selectedFlowId != null && $nodes[$selectedFlowId]}
-				{#key $selectedFlowId}
-					<div class="title">
-						<Title flowId={$selectedFlowId} deleteSelf={() => deleteFlowAndFocus()} />
-					</div>
-					<div class="box-control">
-						<BoxControl flowId={$selectedFlowId} />
-					</div>
-					<div class="flow" class:customScrollbar={settings.data.customScrollbar.value} on:scroll={fixScroll}>
-						<Flow on:focusFlow={focusFlow} flowId={$selectedFlowId} />
-					</div>
-				{/key}
-			{/if}
+
+		{#if $selectedFlowId != null && $nodes[$selectedFlowId]}
+			{#key $selectedFlowId}
+				<div class="title">
+					<Title flowId={$selectedFlowId} deleteSelf={() => deleteFlowAndFocus()} />
+				</div>
+				<div class="box-control">
+					<BoxControl flowId={$selectedFlowId} />
+				</div>
+				<div class="flow" class:customScrollbar={settings.data.customScrollbar.value} on:scroll={fixScroll}>
+					<Flow on:focusFlow={focusFlow} flowId={$selectedFlowId} />
+				</div>
+			{/key}
 			{#if showSideDoc}
 				<div class="side-doc">
 					<SideDoc />
 				</div>
 			{/if}
-		{:else}
-			<div class="prelude">
-				<Prelude />
+		{:else if $nodes.root.children.length > 0}
+			<!-- Round exists but no tab selected yet -->
+			<div class="no-flow-selected">
+				<p>Select a flow from the sidebar or add one.</p>
 			</div>
 		{/if}
 	</div>
@@ -421,12 +498,8 @@
 			'sidebar title box-control side-doc'
 			'sidebar flow flow side-doc';
 	}
-	.grid.showPrelude {
-		grid-template-areas: 'sidebar prelude';
-		grid-template-columns: var(--sidebar-width) auto;
-	}
 
-	.sidebar {
+.sidebar {
 		background: var(--background);
 		width: 100%;
 		height: var(--main-height);
@@ -436,25 +509,121 @@
 		display: flex;
 		flex-direction: column;
 		box-sizing: border-box;
+		gap: var(--padding);
 	}
+
 	.header {
-		height: auto;
-		padding-bottom: var(--padding);
+		flex-shrink: 0;
 	}
+
+	.top-buttons {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: var(--padding);
+		flex-wrap: wrap;
+	}
+
+	.share-btn-wrapper {
+		position: relative;
+		display: inline-flex;
+	}
+
+	.share-indicator {
+		position: absolute;
+		bottom: 2px;
+		right: 2px;
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 8px;
+		pointer-events: none;
+	}
+
+	.share-indicator.connected {
+		background: hsl(140, 60%, 45%);
+		color: white;
+	}
+
+	.share-indicator.connecting {
+		background: hsl(40, 80%, 55%);
+		color: white;
+	}
+
+	.share-indicator.disconnected {
+		background: var(--background-indent);
+		color: var(--text-weak);
+	}
+
+	.round-name-bar {
+		flex-shrink: 0;
+		border-radius: var(--border-radius);
+		background: var(--background-indent);
+		overflow: hidden;
+	}
+
+	.round-name-label {
+		font-weight: var(--font-weight-bold);
+		font-size: 0.9em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: block;
+		color: var(--text);
+		width: 100%;
+		text-align: left;
+		background: none;
+		border: none;
+		padding: var(--padding-small) var(--padding);
+		cursor: text;
+		font-family: inherit;
+	}
+
+	.round-name-label:hover {
+		background: var(--background-active);
+	}
+
+	.round-name-edit {
+		width: 100%;
+		box-sizing: border-box;
+		background: none;
+		border: none;
+		outline: 2px solid var(--color-accent);
+		border-radius: var(--border-radius);
+		padding: var(--padding-small) var(--padding);
+		font-family: inherit;
+		font-size: 0.9em;
+		font-weight: var(--font-weight-bold);
+		color: var(--text);
+	}
+
 	.tabs {
 		overflow-y: auto;
-		height: var(--main-height);
+		flex: 1;
 		box-sizing: border-box;
 		position: relative;
 	}
 	.tabScroll {
 		padding: 0;
 		margin: 0;
-		padding-top: 0;
 		padding-bottom: calc(var(--view-height) * 0.6);
 	}
 
-	.title {
+	.footer {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: var(--padding);
+		padding-top: var(--padding);
+		border-top: 1px solid var(--background-indent);
+	}
+
+
+.title {
 		background: var(--background);
 		border-radius: var(--border-radius);
 		width: 100%;
@@ -478,12 +647,15 @@
 		grid-area: flow;
 		height: var(--view-height);
 	}
-	.prelude {
-		position: relative;
-		width: calc(100vw - var(--sidebar-width) - var(--gap) * 3);
-		height: var(--main-height);
-		grid-area: prelude;
+
+	.no-flow-selected {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		grid-area: flow;
+		color: var(--text-weak);
 	}
+
 	.side-doc {
 		position: relative;
 		width: var(--side-doc-width);

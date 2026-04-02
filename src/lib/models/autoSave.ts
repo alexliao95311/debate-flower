@@ -24,12 +24,15 @@ export type NodeKey = string;
 export type SavedNodesData = {
 	created: string;
 	modified: string;
+	name: string;
 	flowInfos: { content: string; invert: boolean }[];
 };
 
 export type SavedNodesDatas = {
 	[key: NodeKey]: SavedNodesData;
 };
+
+export const currentRoundName = writable<string>('');
 
 function newNodeKey(): NodeKey {
 	return `flow:${newNodeId()}`;
@@ -135,6 +138,12 @@ export function unsetFlowKey() {
 	flowKey = null;
 }
 
+/** Create a new round with the given name (clears current workspace). */
+export function initNewRound(name: string) {
+	unsetFlowKey();
+	currentRoundName.set(name);
+}
+
 subscribeFlowsChange(maybeSaveNodes);
 
 export function getSavedNodesDatas(): SavedNodesDatas {
@@ -155,6 +164,13 @@ export function loadSavedNodes(key: NodeKey, modifyOriginal = false) {
 	replaceNodes(newNodes);
 	if (modifyOriginal) {
 		flowKey = key;
+	}
+	// Restore round name from saved data
+	const data = $savedNodesDatasMut[key];
+	if (data?.name) {
+		currentRoundName.set(data.name);
+	} else {
+		currentRoundName.set('');
 	}
 }
 
@@ -183,9 +199,11 @@ export function saveNodes(nodes: Nodes) {
 	}
 	localStorage.setItem(flowKey, data);
 	// update saved nodes
+	const roundName = get(currentRoundName);
 	$savedNodesDatasMut[flowKey] = {
 		created: $savedNodesDatasMut[flowKey]?.created ?? new Date().toISOString(),
 		modified: new Date().toISOString(),
+		name: roundName || $savedNodesDatasMut[flowKey]?.name || '',
 		flowInfos: nodes.root.children.map((flowId) => {
 			return {
 				content: getNode(nodes, flowId).unwrap().value.content,
@@ -214,6 +232,13 @@ export function saveNodes(nodes: Nodes) {
 	}
 	savedNodesDatasMut.set($savedNodesDatasMut);
 	scheduleCloudFlowSync(flowKey, data);
+}
+
+export function renameRound(key: NodeKey, name: string) {
+	savedNodesDatasMut.set(getSavedNodesDatas());
+	if (!Object.hasOwn($savedNodesDatasMut, key)) return;
+	$savedNodesDatasMut[key] = { ...$savedNodesDatasMut[key], name };
+	savedNodesDatasMut.set($savedNodesDatasMut);
 }
 
 export function downloadSavedNodes(key: NodeKey) {

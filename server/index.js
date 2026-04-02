@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 const PORT = process.env.PORT || 8080;
 
-// roomId -> { clients: Set<WebSocket>, nodes: object | null }
+// roomId -> { clients: Set<WebSocket>, nodes: object | null, roundName: string }
 const rooms = new Map();
 
 const wss = new WebSocketServer({ port: Number(PORT) });
@@ -22,7 +22,7 @@ wss.on('connection', (ws) => {
 			case 'join': {
 				roomId = msg.roomId;
 				if (!rooms.has(roomId)) {
-					rooms.set(roomId, { clients: new Set(), nodes: null });
+					rooms.set(roomId, { clients: new Set(), nodes: null, roundName: '' });
 				}
 				const room = rooms.get(roomId);
 				const isFirst = room.clients.size === 0;
@@ -33,7 +33,7 @@ wss.on('connection', (ws) => {
 				ws.send(JSON.stringify({ tag: 'joined', isFirst }));
 
 				if (!isFirst && room.nodes !== null) {
-					ws.send(JSON.stringify({ tag: 'sync', nodes: room.nodes }));
+					ws.send(JSON.stringify({ tag: 'sync', nodes: room.nodes, roundName: room.roundName }));
 				}
 
 				broadcastToRoom(room, { tag: 'peer_count', count: room.clients.size });
@@ -43,7 +43,29 @@ wss.on('connection', (ws) => {
 			case 'sync': {
 				if (!roomId) return;
 				const room = rooms.get(roomId);
-				if (room) room.nodes = msg.nodes;
+				if (!room) return;
+				room.nodes = msg.nodes;
+				if (msg.roundName != null) room.roundName = msg.roundName;
+				break;
+			}
+
+			case 'round_name': {
+				if (!roomId) return;
+				const room = rooms.get(roomId);
+				if (!room) return;
+				room.roundName = msg.roundName ?? '';
+				// Broadcast to everyone else
+				const broadcast = JSON.stringify({ tag: 'round_name', roundName: room.roundName });
+				for (const client of room.clients) {
+					if (client !== ws && client.readyState === WebSocket.OPEN) {
+						client.send(broadcast);
+					}
+				}
+				break;
+			}
+
+			case 'ping': {
+				ws.send(JSON.stringify({ tag: 'pong' }));
 				break;
 			}
 

@@ -10,6 +10,7 @@
 	import { joinRoom, parseRoomParam } from '$lib/models/wsRoom';
 	import Share from '$lib/components/Share.svelte';
 	import Popup from '$lib/components/Popup.svelte';
+	import { goto } from '$app/navigation';
 
 const colorThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 	if (colorThemeMediaQuery.matches) {
@@ -269,6 +270,22 @@ const colorThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 			joinRoom(roomId);
 			openPopup(Share, 'Share');
 		}
+	});
+
+	// Global error boundary: any uncaught JS error or unhandled promise rejection
+	// that occurs in /app sends the user back to /home instead of a broken screen.
+	onMount(function () {
+		function handleError() {
+			if (location.pathname.startsWith('/app')) {
+				goto('/home');
+			}
+		}
+		window.addEventListener('error', handleError);
+		window.addEventListener('unhandledrejection', handleError);
+		return () => {
+			window.removeEventListener('error', handleError);
+			window.removeEventListener('unhandledrejection', handleError);
+		};
 	});
 
 	let popupsUpdate: boolean = true;
