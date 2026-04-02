@@ -85,10 +85,10 @@ function scheduleReconnect(roomId: string) {
 	}, RECONNECT_MS);
 }
 
-export function createRoom(): string {
-	const roomId = generateRoomId();
-	connect(roomId);
-	return roomId;
+export function createRoom(roomId?: string): string {
+	const id = roomId ?? generateRoomId();
+	connect(id);
+	return id;
 }
 
 export function joinRoom(roomId: string): void {

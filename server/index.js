@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 8080;
 // roomId -> { clients: Set<WebSocket>, nodes: object | null, roundName: string }
 const rooms = new Map();
 
-const wss = new WebSocketServer({ port: Number(PORT) });
+const wss = new WebSocketServer({ port: Number(PORT), perMessageDeflate: true });
 
 wss.on('connection', (ws) => {
 	let roomId = null;

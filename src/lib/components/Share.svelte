@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import { createRoom, disconnect, getRoomLink, wsRoom } from '$lib/models/wsRoom';
+	import { ensureSavedAndGetFlowKey } from '$lib/models/autoSave';
 
 	export let closePopup = () => {};
 
@@ -29,17 +30,18 @@
 		setTimeout(() => (copied = false), 2000);
 	}
 
-	function handleCreate() {
-		createRoom();
+	function handleShare() {
+		const roundKey = ensureSavedAndGetFlowKey();
+		createRoom(roundKey);
 	}
 </script>
 
 <div class="top palette-plain">
 	{#if $wsRoom.tag === 'disconnected'}
 		<div class="explain">
-			<p>Create a room and share the link — anyone with it can join and edit live.</p>
+			<p>Share this round — anyone with the link can join and edit live.</p>
 		</div>
-		<Button palette="accent" icon="add" text="create room" on:click={handleCreate} />
+		<Button palette="accent" icon="add" text="share round" on:click={handleShare} />
 	{:else if $wsRoom.tag === 'connecting'}
 		<div class="status">
 			<p>Connecting…</p>
@@ -48,7 +50,7 @@
 		<div class="info">
 			<div class="peers">
 				<span class="dot" />
-				<span>{$wsRoom.peerCount} {$wsRoom.peerCount === 1 ? 'person' : 'people'} in room</span>
+				<span>{$wsRoom.peerCount} {$wsRoom.peerCount === 1 ? 'person' : 'people'} in this round</span>
 			</div>
 			<div class="linkrow">
 				<input class="linkinput" readonly value={getRoomLink($wsRoom.roomId)} />
@@ -65,7 +67,7 @@
 
 	<div class="controls">
 		{#if $wsRoom.tag === 'connected'}
-			<Button icon="delete" text="leave room" on:click={disconnect} />
+			<Button icon="delete" text="stop sharing" on:click={disconnect} />
 		{/if}
 	</div>
 </div>

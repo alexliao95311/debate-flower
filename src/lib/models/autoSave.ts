@@ -138,6 +138,14 @@ export function unsetFlowKey() {
 	flowKey = null;
 }
 
+/** Returns the current flow's key, saving first if the round hasn't been saved yet. */
+export function ensureSavedAndGetFlowKey(): NodeKey {
+	if (flowKey === null) {
+		saveNodes($nodes);
+	}
+	return flowKey!;
+}
+
 /** Create a new round with the given name (clears current workspace). */
 export function initNewRound(name: string) {
 	unsetFlowKey();
